@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ImageConversion {
+public class ImageConversionApp {
     public static final int COLORS_COUNT_IN_RGB = 3;
 
     public static final Map<Double, int[][]> BLUR_MATRIX = new HashMap<Double, int[][]>() {{
