@@ -136,10 +136,11 @@ public class ImageConversionApp {
         int rightIndexMargin = MEDIAN_BLUR_MATRIX_SIZE / 2;
 
         int[] colors = new int[COLORS_COUNT_IN_RGB];
+        int matrixElementsCount = (int) Math.pow(MEDIAN_BLUR_MATRIX_SIZE, 2);
 
-        int[] r = new int[MEDIAN_BLUR_MATRIX_SIZE * MEDIAN_BLUR_MATRIX_SIZE];
-        int[] g = new int[MEDIAN_BLUR_MATRIX_SIZE * MEDIAN_BLUR_MATRIX_SIZE];
-        int[] b = new int[MEDIAN_BLUR_MATRIX_SIZE * MEDIAN_BLUR_MATRIX_SIZE];
+        int[] r = new int[matrixElementsCount];
+        int[] g = new int[matrixElementsCount];
+        int[] b = new int[matrixElementsCount];
 
         for (int y = 0; y < rasterHeight; y++) {
             for (int x = 0; x < rasterWidth; x++) {
@@ -168,7 +169,8 @@ public class ImageConversionApp {
                         count++;
                     }
                 }
-                final int SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX = (int) Math.pow(MEDIAN_BLUR_MATRIX_SIZE, 2) / 2 + 1;
+
+                final int SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX = matrixElementsCount / 2 + 1;
 
                 Arrays.sort(r);
                 colors[0] = r[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
