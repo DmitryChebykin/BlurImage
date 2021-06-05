@@ -10,8 +10,8 @@ public class ImageConversionApp {
     public static final int COLORS_COUNT_IN_RGB = 3;
     public static final int MAX_COLOR_VALUE_IN_RGB = 255;
     public static final int MIN_COLOR_VALUE_IN_RGB = 0;
-    public static final int SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX = 13;
-    public static final int MEDIAN_BLUR_MATRIX_SIZE = 5;
+
+    public static final int MEDIAN_BLUR_MATRIX_SIZE = 7;
 
     public static final double[][] BLUR_MATRIX = new double[][]{
             {1d / 9d, 1d / 9d, 1d / 9d},
@@ -168,6 +168,7 @@ public class ImageConversionApp {
                         count++;
                     }
                 }
+                final int SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX = (int) Math.pow(MEDIAN_BLUR_MATRIX_SIZE, 2) / 2 + 1;
 
                 Arrays.sort(r);
                 colors[0] = r[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
