@@ -53,26 +53,26 @@ public class ImageConversionApp {
         WritableRaster sourceRaster = source.getRaster();
         ColorModel colorModel = source.getColorModel();
 
-        WritableRaster blurRaster = getConvertedRaster(sourceRaster, BLUR_MATRIX);
+        WritableRaster blurRaster = getMatrixConvertedRaster(sourceRaster, BLUR_MATRIX);
         writeRasterToImageFile(blurRaster, colorModel, "image_blur.jpg", "jpg");
 
-        WritableRaster gaussBlurRaster = getConvertedRaster(sourceRaster, GAUSS_BLUR_MATRIX);
+        WritableRaster gaussBlurRaster = getMatrixConvertedRaster(sourceRaster, GAUSS_BLUR_MATRIX);
         writeRasterToImageFile(gaussBlurRaster, colorModel, "image_gauss_blur.jpg", "jpg");
 
-        WritableRaster sharpRaster = getConvertedRaster(sourceRaster, SHARP_MATRIX);
+        WritableRaster sharpRaster = getMatrixConvertedRaster(sourceRaster, SHARP_MATRIX);
         writeRasterToImageFile(sharpRaster, colorModel, "image_sharp.jpg", "jpg");
 
-        WritableRaster outlineRaster = getConvertedRaster(sourceRaster, OUTLINE_MATRIX);
+        WritableRaster outlineRaster = getMatrixConvertedRaster(sourceRaster, OUTLINE_MATRIX);
         writeRasterToImageFile(outlineRaster, colorModel, "image_outline.jpg", "jpg");
 
         WritableRaster medianBlurRaster = getMedianBlurRaster(gaussBlurRaster, MEDIAN_BLUR_MATRIX_SIZE);
         writeRasterToImageFile(medianBlurRaster, colorModel, "image_median_blur.jpg", "jpg");
 
-        WritableRaster watercolorRaster = getConvertedRaster(medianBlurRaster, OUTLINE_MATRIX);
+        WritableRaster watercolorRaster = getMatrixConvertedRaster(medianBlurRaster, OUTLINE_MATRIX);
         writeRasterToImageFile(watercolorRaster, colorModel, "image_watercolor.png", "png");
     }
 
-    private static WritableRaster getConvertedRaster(WritableRaster sourceRaster, double[][] matrix) {
+    private static WritableRaster getMatrixConvertedRaster(WritableRaster sourceRaster, double[][] matrix) {
         int rasterHeight = sourceRaster.getHeight();
         int rasterWidth = sourceRaster.getWidth();
         int matrixSize = matrix.length;
