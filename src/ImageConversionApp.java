@@ -118,9 +118,9 @@ public class ImageConversionApp {
                     }
                 }
 
-                colors[0] = (int) Math.ceil(getNormalizedColor(redColor));
-                colors[1] = (int) Math.ceil(getNormalizedColor(greenColor));
-                colors[2] = (int) Math.ceil(getNormalizedColor(blurColor));
+                colors[0] = getNormalizedColor(redColor);
+                colors[1] = getNormalizedColor(greenColor);
+                colors[2] = getNormalizedColor(blurColor);
 
                 destinationRaster.setPixel(x, y, colors);
             }
@@ -196,7 +196,7 @@ public class ImageConversionApp {
         return destinationRaster;
     }
 
-    private static double getNormalizedColor(double value) {
+    private static int getNormalizedColor(double value) {
         if (value < MIN_COLOR_VALUE_IN_RGB) {
             return MIN_COLOR_VALUE_IN_RGB;
         }
@@ -204,7 +204,7 @@ public class ImageConversionApp {
             return MAX_COLOR_VALUE_IN_RGB;
         }
 
-        return value;
+        return (int) Math.ceil(value);
     }
 
     private static void writeRasterToImageFile(WritableRaster raster, ColorModel colorModel, String path, String format) {
