@@ -13,27 +13,31 @@ public class ImageConversionApp {
 
     public static final int MEDIAN_BLUR_MATRIX_SIZE = 7;
 
-    public static final double[][] BLUR_MATRIX = new double[][]{
-            {1d / 9d, 1d / 9d, 1d / 9d},
-            {1d / 9d, 1d / 9d, 1d / 9d},
-            {1d / 9d, 1d / 9d, 1d / 9d}};
+    public static final double[][] BLUR_MATRIX = {
+            {1 / 9d, 1 / 9d, 1 / 9d},
+            {1 / 9d, 1 / 9d, 1 / 9d},
+            {1 / 9d, 1 / 9d, 1 / 9d}
+    };
 
-    public static final double[][] GAUSS_BLUR_MATRIX = new double[][]{
-            {1d / 256d, 4d / 256d, 6d / 256d, 4d / 256d, 1d / 256d},
-            {4d / 256d, 16d / 256d, 24d / 256d, 16d / 256d, 4d / 256d},
-            {6d / 256d, 24d / 256d, 36d / 256d, 24d / 256d, 6d / 256d},
-            {4d / 256d, 16d / 256d, 24d / 256d, 16d / 256d, 4d / 256d},
-            {1d / 256d, 4d / 256d, 6d / 256d, 4d / 256d, 1d / 256d}};
+    public static final double[][] GAUSS_BLUR_MATRIX = {
+            {1d / 256, 4d / 256, 6d / 256, 4d / 256, 1d / 256},
+            {4d / 256, 16d / 256, 24d / 256, 16d / 256, 4d / 256},
+            {6d / 256, 24d / 256, 36d / 256, 24d / 256, 6d / 256},
+            {4d / 256, 16d / 256, 24d / 256, 16d / 256, 4d / 256},
+            {1d / 256, 4d / 256, 6d / 256, 4d / 256, 1d / 256}
+    };
 
-    public static final double[][] SHARP_MATRIX = new double[][]{
+    public static final double[][] SHARP_MATRIX = {
             {0, -0.25, 0},
             {-0.25, 2, -0.25},
-            {0, -0.25, 0}};
+            {0, -0.25, 0}
+    };
 
-    public static final double[][] OUTLINE_MATRIX = new double[][]{
+    public static final double[][] OUTLINE_MATRIX = {
             {-0.5, -0.5, -0.5},
             {-0.5, 5, -0.5},
-            {-0.5, -0.5, -0.5}};
+            {-0.5, -0.5, -0.5}
+    };
 
     public static void main(String[] args) {
         File file = new File("image.jpg");
@@ -61,7 +65,7 @@ public class ImageConversionApp {
         WritableRaster outlineRaster = getConvertedRaster(sourceRaster, OUTLINE_MATRIX);
         writeRasterToImageFile(outlineRaster, colorModel, "image_outline.jpg", "jpg");
 
-        WritableRaster medianBlurRaster = getConvertedRaster(gaussBlurRaster);
+        WritableRaster medianBlurRaster = getMedianBlurRaster(gaussBlurRaster, MEDIAN_BLUR_MATRIX_SIZE);
         writeRasterToImageFile(medianBlurRaster, colorModel, "image_median_blur.jpg", "jpg");
 
         WritableRaster watercolorRaster = getConvertedRaster(medianBlurRaster, OUTLINE_MATRIX);
@@ -87,7 +91,9 @@ public class ImageConversionApp {
 
         for (int y = 0; y < rasterHeight; y++) {
             for (int x = 0; x < rasterWidth; x++) {
-                double r = 0, g = 0, b = 0;
+                double redColor = 0;
+                double greenColor = 0;
+                double blurColor = 0;
 
                 for (int i = leftIndexMargin; i <= rightIndexMargin; i++) {
                     for (int j = leftIndexMargin; j <= rightIndexMargin; j++) {
@@ -95,24 +101,26 @@ public class ImageConversionApp {
                         int pixelByMatrixCoordinateY = y + i;
 
                         // if the pixel by matrix is outside the image, get the data of pixels located mirrored from the current one
-                        if (pixelByMatrixCoordinateX < 0 || pixelByMatrixCoordinateX > rasterWidth - 1) {
+                        if (pixelByMatrixCoordinateX < 0 || pixelByMatrixCoordinateX >= rasterWidth) {
                             pixelByMatrixCoordinateX = x - j;
                         }
 
-                        if (pixelByMatrixCoordinateY < 0 || pixelByMatrixCoordinateY > rasterHeight - 1) {
+                        if (pixelByMatrixCoordinateY < 0 || pixelByMatrixCoordinateY >= rasterHeight) {
                             pixelByMatrixCoordinateY = y - i;
                         }
 
                         sourceRaster.getPixel(pixelByMatrixCoordinateX, pixelByMatrixCoordinateY, colors);
-                        r = r + colors[0] * matrix[rightIndexMargin + i][rightIndexMargin + j];
-                        g = g + colors[1] * matrix[rightIndexMargin + i][rightIndexMargin + j];
-                        b = b + colors[2] * matrix[rightIndexMargin + i][rightIndexMargin + j];
+                        double multiplier = matrix[rightIndexMargin + i][rightIndexMargin + j];
+
+                        redColor += colors[0] * multiplier;
+                        greenColor += colors[1] * multiplier;
+                        blurColor += colors[2] * multiplier;
                     }
                 }
 
-                colors[0] = (int) Math.ceil(getNormalizedColor(r));
-                colors[1] = (int) Math.ceil(getNormalizedColor(g));
-                colors[2] = (int) Math.ceil(getNormalizedColor(b));
+                colors[0] = (int) Math.ceil(getNormalizedColor(redColor));
+                colors[1] = (int) Math.ceil(getNormalizedColor(greenColor));
+                colors[2] = (int) Math.ceil(getNormalizedColor(blurColor));
 
                 destinationRaster.setPixel(x, y, colors);
             }
@@ -121,26 +129,27 @@ public class ImageConversionApp {
         return destinationRaster;
     }
 
-    private static WritableRaster getConvertedRaster(WritableRaster sourceRaster) {
+    private static WritableRaster getMedianBlurRaster(WritableRaster sourceRaster, int medianBlurMatrixSize) {
         int rasterHeight = sourceRaster.getHeight();
         int rasterWidth = sourceRaster.getWidth();
 
         WritableRaster destinationRaster = sourceRaster.createCompatibleWritableRaster();
 
-        if (rasterHeight < MEDIAN_BLUR_MATRIX_SIZE || rasterWidth < MEDIAN_BLUR_MATRIX_SIZE) {
+        if (rasterHeight < medianBlurMatrixSize || rasterWidth < medianBlurMatrixSize) {
             destinationRaster.setDataElements(0, 0, sourceRaster);
             return destinationRaster; // the image does not meet the minimum size for transformations, just copy raster
         }
 
-        int leftIndexMargin = -MEDIAN_BLUR_MATRIX_SIZE / 2;
-        int rightIndexMargin = MEDIAN_BLUR_MATRIX_SIZE / 2;
+        int leftIndexMargin = -medianBlurMatrixSize / 2;
+        int rightIndexMargin = medianBlurMatrixSize / 2;
+
+        int matrixElementsCount = (int) Math.pow(medianBlurMatrixSize, 2);
+
+        int[] redValues = new int[matrixElementsCount];
+        int[] greenValues = new int[matrixElementsCount];
+        int[] blueValues = new int[matrixElementsCount];
 
         int[] colors = new int[COLORS_COUNT_IN_RGB];
-        int matrixElementsCount = (int) Math.pow(MEDIAN_BLUR_MATRIX_SIZE, 2);
-
-        int[] r = new int[matrixElementsCount];
-        int[] g = new int[matrixElementsCount];
-        int[] b = new int[matrixElementsCount];
 
         for (int y = 0; y < rasterHeight; y++) {
             for (int x = 0; x < rasterWidth; x++) {
@@ -148,23 +157,22 @@ public class ImageConversionApp {
 
                 for (int i = leftIndexMargin; i <= rightIndexMargin; i++) {
                     for (int j = leftIndexMargin; j <= rightIndexMargin; j++) {
-
                         int pixelByMatrixCoordinateX = x + j;
                         int pixelByMatrixCoordinateY = y + i;
 
                         // if the matrix pixel is outside the image, get the data of pixels located mirrored from the current one
-                        if (pixelByMatrixCoordinateX < 0 || pixelByMatrixCoordinateX > rasterWidth - 1) {
+                        if (pixelByMatrixCoordinateX < 0 || pixelByMatrixCoordinateX >= rasterWidth) {
                             pixelByMatrixCoordinateX = x - j;
                         }
 
-                        if (pixelByMatrixCoordinateY < 0 || pixelByMatrixCoordinateY > rasterHeight - 1) {
+                        if (pixelByMatrixCoordinateY < 0 || pixelByMatrixCoordinateY >= rasterHeight) {
                             pixelByMatrixCoordinateY = y - i;
                         }
 
                         sourceRaster.getPixel(pixelByMatrixCoordinateX, pixelByMatrixCoordinateY, colors);
-                        r[count] = colors[0];
-                        g[count] = colors[1];
-                        b[count] = colors[2];
+                        redValues[count] = colors[0];
+                        greenValues[count] = colors[1];
+                        blueValues[count] = colors[2];
 
                         count++;
                     }
@@ -172,14 +180,14 @@ public class ImageConversionApp {
 
                 final int SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX = matrixElementsCount / 2 + 1;
 
-                Arrays.sort(r);
-                colors[0] = r[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
+                Arrays.sort(redValues);
+                colors[0] = redValues[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
 
-                Arrays.sort(g);
-                colors[1] = g[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
+                Arrays.sort(greenValues);
+                colors[1] = greenValues[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
 
-                Arrays.sort(b);
-                colors[2] = b[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
+                Arrays.sort(blueValues);
+                colors[2] = blueValues[SORTED_CHANNEL_COLORS_ARRAY_MEDIAN_INDEX];
 
                 destinationRaster.setPixel(x, y, colors);
             }
@@ -203,7 +211,7 @@ public class ImageConversionApp {
         try {
             ImageIO.write(new BufferedImage(colorModel, raster, colorModel.isAlphaPremultiplied(), null), format, new File(path));
         } catch (IOException e) {
-            System.out.println("Файл " + path + " не записываются.");
+            System.out.println("Файл " + path + " не записывается.");
         }
     }
 }
